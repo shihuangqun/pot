@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="stylesheet" type="text/css" href="/static/index/css/swiper-3.3.1.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/index/css/show.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/index/layui/css/layui.css"/>
+
+</head>
+<style>
+    body{
+        background: #F0F0F0;
+    }
+    .layui-unselect{
+        width:22%;
+    }
+</style>
+<body>
+<div>
+    <div style="width: 95%;margin: auto;height: 90px;background: white;margin-top: 5px">
+        <div style="padding: 10px 10px 10px 10px">
+            <div style="width: 100%;height: 35px;">
+                <div style="font-size: 18px;float: left;line-height: 2.3;">信息接收开关</div>
+                <div style="float: right">
+                    <form class="layui-form" action="">
+
+                        <div class="layui-form-item" style="margin-bottom: 0px;">
+                            <!--                <label class="layui-form-label">开关-默认开</label>-->
+                            <div class="layui-input-block">
+                                <input type="checkbox" checked="" name="open" lay-skin="switch" lay-filter="switchTest" lay-text="开|关">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <br>
+            <div style="color: #FF3030;font-size: 12px;">(关闭此项代表您不接收平台的所有咨询,请慎重选择！)</div>
+        </div>
+
+    </div>
+</div>
+
+<div style="width: 95%;margin: auto;height: 470px;background: white;margin-top: 15px" id="show">
+    <div style="padding: 10px 10px 10px 10px">
+        <div style="font-size: 18px;color: #FF3030;">负责地区 <span style="font-size: 14px">（只推送您已选择的地区商机）</span></div>
+        <form class="layui-form" action="">
+            <div class="layui-form-item" pane="" style="margin-top: 20px;">
+                <div class="layui-input-block" style="margin-left: 0px" id="all">
+                    <input type="checkbox" name="all" lay-skin="primary" title="全国" {if condition="$str[0] eq 0 "}checked{/if} value="0">
+                </div>
+            </div>
+
+            <div class="layui-form-item" pane="" style="margin-top: 20px;" >
+                <div class="layui-input-block" style="margin-left: 0px" id="city">
+                    {volist name="city" id="vo"}
+
+                    <input type="checkbox" name="city" lay-skin="primary" value="{$vo.id}" title="{$vo.name}" {if condition="in_array($vo.id,$str)"}checked{/if}>
+
+                    {/volist}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+<script src="/static/index/js/jquery-2.1.4.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/index/js/swiper.jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/index/layui/layui.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'layedit', 'laydate'], function(){
+        var form = layui.form
+            ,layer = layui.layer
+            ,layedit = layui.layedit
+            ,laydate = layui.laydate;
+
+
+
+
+        //监听指定开关
+        form.on('switch(switchTest)', function(data){
+            var status = this.checked;
+            if(status == true){
+                $('#show').css('display','block');
+                SaveStatus(1);
+            }else{
+                SaveStatus(0);
+                $('#show').css('display','none');
+            }
+            // layer.msg('开关checked：'+ (this.checked ? 'true' : 'false'), {
+            //     offset: '6px'
+            // });
+            // layer.tips('温馨提示：请注意开关状态的文字可以随意定义，而不仅仅是ON|OFF', data.othis)
+        });
+
+        //监听提交
+        form.on('submit(demo1)', function(data){
+            layer.alert(JSON.stringify(data.field), {
+                title: '最终的提交信息'
+            })
+            return false;
+        });
+
+        // //表单赋值
+        // layui.$('#LAY-component-form-setval').on('click', function(){
+        //     form.val('example', {
+        //         "username": "贤心" // "name": "value"
+        //         ,"password": "123456"
+        //         ,"interest": 1
+        //         ,"like[write]": true //复选框选中状态
+        //         ,"close": true //开关状态
+        //         ,"sex": "女"
+        //         ,"desc": "我爱 layui"
+        //     });
+        // });
+        //
+        // //表单取值
+        // layui.$('#LAY-component-form-getval').on('click', function(){
+        //     var data = form.val('example');
+        //     alert(JSON.stringify(data));
+        // });
+
+    });
+   $(document).on('click','#city',function () {
+
+       $('#all').find('.layui-unselect').removeClass('layui-form-checked')//删除选中样式
+       $('#all input[name=all]').attr('checked',false);
+       var obj = document.getElementsByName("city");//选择所有name="interest"的对象，返回数组
+       var arr='';//如果这样定义var s;变量s中会默认被赋个null值
+       for(var i=0;i<obj.length;i++){
+           if(obj[i].checked) //取到对象数组后，我们来循环检测它是不是被选中
+               arr+=obj[i].value+',';   //如果选中，将value添加到变量s中
+       }
+       request(arr)
+       console.log(arr)
+
+
+   });
+
+   //全国
+   $('#all').click(function () {
+       var id = $("input[name='all']:checked").val();
+       console.log(id)
+       if(id != null){
+           request(id);
+       }else{
+           // $('#show').css('display','none');先不隐藏 有bug
+           SaveStatus(0);//取消全国时修改状态 不通知
+       }
+
+       $("#city input[name='city']").each(function(){
+           $('#city').find('.layui-unselect').removeClass('layui-form-checked')//删除选中样式;
+           this.checked = false;
+       });
+   });
+
+   function request(id){
+      $.ajax({
+          type:'post',
+          data:{id:id},
+          dataType:'json',
+          url:'http://wx.glcgpt.com/index/member/usercity',
+          success: function (res) {
+              console.log(res)
+          }
+      })
+   }
+    function SaveStatus(status){
+        $.ajax({
+            type:'post',
+            data:{status:status},
+            dataType:'json',
+            url:'http://wx.glcgpt.com/index/member/noticestatus',
+            success: function (res) {
+                console.log(res)
+            }
+        })
+    }
+</script>
+
+</body>
